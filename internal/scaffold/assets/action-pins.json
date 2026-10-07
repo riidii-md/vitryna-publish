@@ -1,0 +1,21 @@
+{
+  "actions/checkout": {
+    "version": "v7.0.1",
+    "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1"
+  },
+  "actions/upload-artifact": {
+    "version": "v7.0.1",
+    "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
+  },
+  "actions/setup-go": {
+    "version": "v7.0.0",
+    "commit": "b7ad1dad31e06c5925ef5d2fc7ad053ef454303e"
+  },
+  "actionlint": {
+    "version": "v1.7.12",
+    "module": "github.com/rhysd/actionlint/cmd/actionlint"
+  },
+  "release-go": {
+    "version": "1.27.1"
+  }
+}

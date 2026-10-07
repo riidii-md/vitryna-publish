@@ -1,0 +1,4 @@
+/.agent-runs/
+/bin/
+/dist/
+/coverage.out

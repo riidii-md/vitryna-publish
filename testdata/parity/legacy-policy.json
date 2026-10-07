@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "publicPaths": ["README.md", "scripts", "src"],
+  "privatePaths": ["docs/private", ".public-export.json", ".vitryna.yml"],
+  "forbiddenContent": ["SYNTHETIC_FORBIDDEN_MARKER"]
+}

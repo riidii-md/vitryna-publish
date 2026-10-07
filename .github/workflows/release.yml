@@ -1,0 +1,70 @@
+name: Prepare a reviewed release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Existing protected public tag (for example v0.1.0-rc.1)
+        type: string
+        required: true
+      prerelease:
+        description: Mark this version experimental
+        type: boolean
+        default: true
+      draft:
+        description: Keep the release unpublished for final inspection
+        type: boolean
+        default: true
+permissions: {}
+jobs:
+  release:
+    if: ${{ github.repository == 'riidii-md/vitryna-publish' }}
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.version }}
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - name: Verify the selected public revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./...
+          go vet ./...
+          test -z "$(gofmt -l cmd config export internal test)"
+          go test -race ./...
+      - name: Build four platform binaries and exact pin manifest
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        shell: bash
+        run: |
+          go run ./cmd/vitryna-release --version "$RELEASE_VERSION" --output "$RUNNER_TEMP/vitryna-release"
+          (cd "$RUNNER_TEMP/vitryna-release" && sha256sum --check checksums.txt)
+          "$RUNNER_TEMP/vitryna-release/vitryna-linux-amd64" version
+      - name: Create the explicitly requested draft or prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          IS_PRERELEASE: ${{ inputs.prerelease }}
+          IS_DRAFT: ${{ inputs.draft }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GH_REPO/commits/$RELEASE_VERSION" --jq .sha)" = "$(git rev-parse HEAD)"
+          release_flags=(--verify-tag --title "$RELEASE_VERSION" --notes 'Experimental Vitryna Publish. Read the security model and hosted acceptance status before enabling publication.')
+          if [[ "$IS_PRERELEASE" == true ]]; then release_flags+=(--prerelease); fi
+          if [[ "$IS_DRAFT" == true ]]; then release_flags+=(--draft); fi
+          gh release create "$RELEASE_VERSION" "${release_flags[@]}" \
+            "$RUNNER_TEMP/vitryna-release/vitryna-linux-amd64" \
+            "$RUNNER_TEMP/vitryna-release/vitryna-linux-arm64" \
+            "$RUNNER_TEMP/vitryna-release/vitryna-darwin-amd64" \
+            "$RUNNER_TEMP/vitryna-release/vitryna-darwin-arm64" \
+            "$RUNNER_TEMP/vitryna-release/vitryna-pins.json" \
+            "$RUNNER_TEMP/vitryna-release/checksums.txt"

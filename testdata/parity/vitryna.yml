@@ -1,0 +1,5 @@
+version: 1
+export:
+  public: [README.md, scripts, src]
+  private: [docs/private, .public-export.json, .vitryna.yml]
+  forbidden_content: [SYNTHETIC_FORBIDDEN_MARKER]

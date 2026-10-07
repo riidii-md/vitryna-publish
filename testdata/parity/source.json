@@ -1,0 +1,6 @@
+[
+  {"path":"README.md","mode":"100644","body":"Synthetic public edition.\n"},
+  {"path":"scripts/run.sh","mode":"100755","body":"#!/bin/sh\nprintf \"synthetic\\n\"\n"},
+  {"path":"src/message.txt","mode":"100644","body":"hello\r\npublic\r\n"},
+  {"path":"docs/private/notes.md","mode":"100644","body":"Synthetic private note, not real repository content.\n"}
+]

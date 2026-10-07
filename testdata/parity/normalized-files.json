@@ -1,0 +1,5 @@
+[
+  {"path":"README.md","mode":"100644","size":26,"sha256":"7cf9e0ff707ca71d6642965deeba9c60678994f224d8e4391d4703fd7fff143e"},
+  {"path":"scripts/run.sh","mode":"100755","size":31,"sha256":"8e279e499777ae00ac0a6c101e2fc198528d320b374a97ac989686634e1b6434"},
+  {"path":"src/message.txt","mode":"100644","size":15,"sha256":"118550c146250735f03d46cea2ba58efa6c7e9f27411b0de2198f862adebcc11"}
+]

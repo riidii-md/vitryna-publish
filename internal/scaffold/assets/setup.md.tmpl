@@ -1,0 +1,44 @@
+# Vitryna Publish setup
+
+Generated for `{{ .SourceRepository }}` → `{{ .GitHub.Repository }}` using `{{ .Pins.Version }}`.
+This guide is explicitly private in `.vitryna.yml`. Review and commit all three generated files.
+
+## Before enabling publication
+
+1. Initialize the public target's `{{ .GitHub.BaseBranch }}` branch yourself. Vitryna never creates target history, changes protection, or pushes the public base.
+2. Create a dedicated GitHub App installed only on the selected public target. Do not install this App on other repositories or give it bypass rights.
+3. Grant Metadata read, Contents write, and Pull requests write. Add Workflows write when the public edition includes, replaces, or removes public workflows. Classic-protection auto mode additionally requires Administration read; manual and effective-ruleset modes do not.
+4. In the source repository, set variable `VITRYNA_APP_CLIENT_ID` and secret `VITRYNA_APP_PRIVATE_KEY`. The workflow uses its own `GITHUB_TOKEN` for source/artifact reads. Never place credentials in `.vitryna.yml`.
+5. Protect the trusted source branch; require review of `.vitryna.yml` and `.github/workflows/vitryna-publish.yml` (for example through CODEOWNERS). Changes to destination identity require workflow regeneration and review.
+6. Protect the public base with required public CI and/or reviews. Enable Actions failure notifications. If reviews gate auto-merge, dismiss stale approvals or require approval after the last push.
+7. Replace or review the project verification command in the `verify` job. Run builds into a directory outside the receipt-bound source tree; source byte/mode/inventory changes fail verification.
+
+## Review your visibility rules
+
+The requested public paths are exact files or entire subtrees. A public subtree intentionally includes future descendants. Every remaining currently tracked file is an exact private rule; new paths outside selected subtrees require a deliberate classification decision. `.vitryna.yml` and the Vitryna workflow are automatic private controls; this guide has an explicit private rule.
+
+After committing, inspect the selected snapshot:
+
+```sh
+vitryna check --format json
+vitryna explain README.md
+vitryna export --output ../public-preview --receipt ../public-preview.receipt.json
+```
+
+The generated workflow has four jobs: invalidate → seal → verify → reconcile. Project commands run only against a disposable receipt-checked copy without target/App credentials. Publication re-downloads and revalidates the original immutable seal using its exact ID, digest, run, and source identity. Artifacts stay private for seven days. Preview diff never suppresses trusted no-diff reconciliation.
+
+Private pull requests and manual dispatch with `publish: false` preview only. A dispatch requesting publication fails if its commit is no longer the trusted source tip. GitHub's queue order is not freshness evidence.
+
+## Merge policy
+
+Current mode: `{{ .GitHub.Merge.Mode }}`. Manual merge is the default. Explicit auto mode requests GitHub-native auto-merge only after checking a positive blocking gate, method availability, and review freshness; Vitryna never invokes an immediate merge endpoint or bypasses public protection.
+
+An armed public PR can merge before a later private push's asynchronous invalidation succeeds. There is no atomic freshest-source merge guarantee. Do not repurpose the managed `{{ .GitHub.PromotionBranch }}` branch as a base or default branch; runtime guards cannot make concurrent administrator changes atomic.
+
+## Credentials and recovery
+
+Control jobs mint independent, short-lived exact-target installation tokens and revoke them on completion. Rotate the App key by replacing the source secret and retiring the old key; revoke/suspend the App if credentials are exposed. A failed invalidation can leave an older PR armed: inspect the failed job summary and close/disarm that exact owned candidate before retrying from the current trusted tip.
+
+No-diff runs keep the owned candidate closed and lease-delete only its promotion ref. Unowned/ambiguous PRs, stale source, missing target base, changed default identity, artifact mismatches, or lease conflicts stop publication. Never force over a competing head or rewrite public default history as recovery.
+
+This generated adapter is experimental until hosted sandbox acceptance is completed for its released version. Follow the public project documentation for security boundaries, incidents, troubleshooting, and release verification.
